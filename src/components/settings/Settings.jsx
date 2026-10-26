@@ -216,7 +216,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div className="w-full space-y-6 animate-fade-in">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Settings</h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure your institution profile, alert automations, and visual preferences.</p>
@@ -249,8 +249,10 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Institution & Administrator Information */}
-      <div className="rounded-2xl bg-white dark:bg-[#0B0F19]/80 border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 backdrop-blur-xl shadow-sm dark:shadow-[0_4px_25px_rgba(0,0,0,0.3)] space-y-5">
+      {/* 2-Column Responsive Settings Grid for Desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+        {/* Institution & Administrator Information */}
+        <div className="rounded-2xl bg-white dark:bg-[#0B0F19]/80 border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 backdrop-blur-xl shadow-sm dark:shadow-[0_4px_25px_rgba(0,0,0,0.3)] space-y-5 flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 dark:text-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
@@ -578,11 +580,14 @@ export default function Settings() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Save Button */}
-      <button onClick={handleSave} className="btn-primary w-full sm:w-auto">
-        <Save size={15} /> Save All Changes
-      </button>
+      <div className="flex justify-end pt-1">
+        <button onClick={handleSave} className="btn-primary w-full sm:w-auto text-sm py-2.5 px-6 shadow-md shadow-blue-500/20 cursor-pointer">
+          <Save size={16} /> Save All Changes
+        </button>
+      </div>
 
       {/* Account Session & Sign Out */}
       <div className="rounded-2xl bg-white dark:bg-[#0B0F19]/80 border border-slate-200/80 dark:border-white/10 p-5 sm:p-6 backdrop-blur-xl shadow-sm dark:shadow-[0_4px_25px_rgba(0,0,0,0.3)] space-y-4">

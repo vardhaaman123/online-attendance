@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
-import { getUserIdentities, isMessageTargetingMe, isMessageUnreadForUser } from '../../utils/messageUtils';
+import { getUserIdentities, isMessageTargetingMe, isMessageUnreadForUser, getUnreadMessagesCountForUser } from '../../utils/messageUtils';
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -28,6 +28,16 @@ export default function Header({ onMenuOpen }) {
   const { messages = [], teachers = [], students = [] } = useApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Close notifications on Escape key press
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setNotifOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [notifOpen]);
 
   const identities = useMemo(() => {
     return getUserIdentities({ role, user, currentStudent, teachers, students });
@@ -62,8 +72,8 @@ export default function Header({ onMenuOpen }) {
   }, [messages, identities, students, role]);
 
   const unreadCount = useMemo(() => {
-    return notifications.filter((n) => n.unread).length;
-  }, [notifications]);
+    return getUnreadMessagesCountForUser(messages, identities, students);
+  }, [messages, identities, students]);
 
   return (
     <header className="h-16 w-full max-w-full bg-[#0B0F1A]/70 backdrop-blur-2xl border-b border-white/10 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 no-print flex-shrink-0 relative z-40 shadow-[0_4px_24px_rgba(0,0,0,0.3)] select-none">
@@ -94,7 +104,9 @@ export default function Header({ onMenuOpen }) {
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse" />
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-[#0B0F1A] shadow-[0_0_10px_rgba(239,68,68,0.8)] leading-none select-none pointer-events-none">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
             )}
           </button>
 
@@ -105,8 +117,8 @@ export default function Header({ onMenuOpen }) {
                 <div className="px-4 py-3.5 border-b border-white/10 flex items-center justify-between">
                   <p className="text-xs font-semibold text-white tracking-wide">Notifications</p>
                   {unreadCount > 0 && (
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 flex items-center gap-1.5 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25 flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                       {unreadCount} unread
                     </span>
                   )}
@@ -126,11 +138,11 @@ export default function Header({ onMenuOpen }) {
                           navigate('/messages');
                         }}
                         className={`px-4 py-3 border-b border-white/[0.05] last:border-0 cursor-pointer hover:bg-white/[0.05] transition-all duration-150 flex items-start gap-2.5 ${
-                          n.unread ? 'bg-emerald-500/[0.08]' : ''
+                          n.unread ? 'bg-red-500/[0.08]' : ''
                         }`}
                       >
                         {n.unread && (
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0 mt-1" />
+                          <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.9)] animate-pulse flex-shrink-0 mt-1" />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-slate-200 font-medium break-words leading-relaxed">{n.msg}</p>

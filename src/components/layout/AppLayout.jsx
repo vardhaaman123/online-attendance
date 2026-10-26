@@ -57,8 +57,8 @@ export default function AppLayout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden min-h-0 relative z-10">
         <Header onMenuOpen={() => setMobileOpen(true)} />
-        <main className={`flex-1 min-h-0 w-full max-w-full min-w-0 relative z-0 ${location.pathname === '/messages' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:py-4 lg:px-7'}`}>
-          <div key={location.pathname} className="w-full min-h-0 animate-page-entrance flex-1 flex flex-col">
+        <main className={`flex-1 min-h-0 w-full max-w-full min-w-0 relative z-0 ${location.pathname === '/messages' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:py-5 lg:px-8'}`}>
+          <div key={location.pathname} className="w-full min-h-0 flex-1 flex flex-col animate-fade-in">
             <Outlet />
           </div>
         </main>

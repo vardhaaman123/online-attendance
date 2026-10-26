@@ -64,7 +64,7 @@ export default function ToastContainer() {
   const { toasts, removeToast } = useApp();
 
   return (
-    <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col gap-2.5 pointer-events-none no-print">
+    <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] right-3 sm:right-6 z-50 flex flex-col gap-2.5 pointer-events-none no-print">
       {toasts.map((toast) => (
         <div key={toast.id} className="pointer-events-auto">
           <Toast toast={toast} onRemove={removeToast} />

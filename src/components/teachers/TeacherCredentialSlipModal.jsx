@@ -206,7 +206,41 @@ export default function TeacherCredentialSlipModal({ open, teacher, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Faculty Login Credentials" maxWidth="max-w-md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Faculty Login Credentials"
+      maxWidth="max-w-md sm:max-w-lg"
+      footer={
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 w-full min-w-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary text-xs px-3.5 cursor-pointer w-full sm:w-auto"
+          >
+            Close
+          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0 justify-end">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="btn-secondary text-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+            >
+              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+              <span>{copied ? 'Copied!' : 'Copy Credentials'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="btn-primary text-xs flex-1 sm:flex-initial flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap bg-blue-600 hover:bg-blue-500 border-blue-500 shadow-md shadow-blue-600/20 flex-shrink-0"
+            >
+              <Printer size={14} />
+              <span>Print Slip</span>
+            </button>
+          </div>
+        </div>
+      }
+    >
       <div className="space-y-4">
         {/* Printable/Preview Slip Card */}
         <div className="relative rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#111726] dark:to-[#0C101A] border-2 border-blue-500/30 p-5 shadow-lg overflow-hidden">
@@ -307,34 +341,6 @@ export default function TeacherCredentialSlipModal({ open, teacher, onClose }) {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between gap-2.5 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary text-xs px-3.5 cursor-pointer"
-          >
-            Close
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="btn-secondary text-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-              <span>{copied ? 'Copied!' : 'Copy Credentials'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="btn-primary text-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <Printer size={14} />
-              <span>Print Slip</span>
-            </button>
-          </div>
-        </div>
       </div>
     </Modal>
   );

@@ -554,7 +554,7 @@ export default function Marks() {
   }).sort((a, b) => Number(viewExam.marks[b.id] ?? -1) - Number(viewExam.marks[a.id] ?? -1)), [viewExam, students, viewSearch]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-2 sm:space-y-2.5 animate-fade-in pb-6">
+    <div className="w-full space-y-2 sm:space-y-2.5 animate-fade-in pb-6">
       {savingMarks && <LoadingScreen message="Saving marks to Firebase..." fullScreen={true} />}
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
@@ -604,7 +604,7 @@ export default function Marks() {
                 <BookOpen size={12} />
                 <span>Exams Overview</span>
                 {exams.length > 0 && (
-                  <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${
+                  <span className={`text-[9px] px-1 py-0.5 rounded-full font-bold ${
                     viewMode === "exams" ? "bg-white/20 text-white" : "bg-white/[0.08] text-slate-400"
                   }`}>
                     {exams.length}
@@ -1061,7 +1061,7 @@ export default function Marks() {
                           />
                           <span className="text-[10px] text-slate-400 font-medium">/{maxMarks}</span>
                           {gi && (
-                            <span className={`text-[9px] font-bold px-1 py-0.2 rounded border min-w-[20px] text-center ${gi.bg} ${gi.color}`}>
+                            <span className={`text-[9px] font-bold px-1 py-0.5 rounded border min-w-[20px] text-center ${gi.bg} ${gi.color}`}>
                               {gi.grade}
                             </span>
                           )}
@@ -1174,7 +1174,7 @@ export default function Marks() {
                             </div>
                           </td>
                           <td className="px-3 py-2 text-center hidden md:table-cell">
-                            {gi ? <span className={`text-[11px] font-bold px-1.5 py-0.2 rounded border ${gi.bg} ${gi.color}`}>{ap}%</span> : <span className="text-xs text-slate-400">-</span>}
+                            {gi ? <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${gi.bg} ${gi.color}`}>{ap}%</span> : <span className="text-xs text-slate-400">-</span>}
                           </td>
                           <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-1">

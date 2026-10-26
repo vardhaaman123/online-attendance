@@ -122,12 +122,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  html, body, #root {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-}
 
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;

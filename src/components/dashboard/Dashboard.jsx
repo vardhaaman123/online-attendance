@@ -233,7 +233,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-8 animate-fade-in text-slate-100">
+    <div className="w-full space-y-4 sm:space-y-6 pb-8 animate-fade-in text-slate-100">
       {/* ── TOP HERO COMMAND BANNER (Apple Liquid Glass) ── */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white/80 dark:bg-[#0B0F19]/80 border border-slate-200/80 dark:border-white/10 p-4 sm:p-6 backdrop-blur-2xl shadow-sm dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] space-y-4 sm:space-y-5">
         {/* Top Row: School Name & Quick Action Buttons */}
@@ -334,7 +334,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── 4 KPI STAT CARDS ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Total Students */}
         <div className="relative group overflow-hidden rounded-xl sm:rounded-2xl bg-[#0B0F19]/80 border border-white/10 hover:border-blue-500/30 p-2.5 sm:p-5 backdrop-blur-xl transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:shadow-[0_4px_25px_rgba(59,130,246,0.1)]">
           <div className="flex items-start justify-between mb-2 sm:mb-3">
@@ -436,9 +436,9 @@ export default function Dashboard() {
       </div>
 
       {/* ── MIDDLE ROW: CLASSES STATUS & ANALYTICS VISUALIZER ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-5">
         {/* Classes & Sections Live Status (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col space-y-3">
+        <div className="md:col-span-5 lg:col-span-5 flex flex-col space-y-3">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-bold text-white flex items-center gap-2 tracking-tight">
               <BookOpen size={16} className="text-blue-400" />
@@ -529,7 +529,7 @@ export default function Dashboard() {
                             Sec {sec.section} {isSectionLocked && <Lock size={10} className="text-slate-600" />}
                           </span>
                           <span
-                            className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${
+                            className={`text-[9px] px-1.5 py-0.5 rounded font-semibold border ${
                               isSectionLocked
                                 ? 'bg-slate-500/5 text-slate-500 border-slate-500/10'
                                 : sec.isMarked
@@ -559,7 +559,7 @@ export default function Dashboard() {
         </div>
 
         {/* Interactive Analytics Visualizer (7 Cols) */}
-        <div className="lg:col-span-7 flex flex-col rounded-2xl bg-[#0B0F19]/80 border border-white/10 p-3.5 sm:p-5 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] min-w-0 overflow-hidden">
+        <div className="md:col-span-7 lg:col-span-7 flex flex-col rounded-2xl bg-[#0B0F19]/80 border border-white/10 p-3.5 sm:p-5 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] min-w-0 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-2.5 sm:mb-6">
             <div>
               <h2 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 sm:gap-2 tracking-tight">
@@ -752,9 +752,9 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {msg.isUnread && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0" title="New notice" />
+                        <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse flex-shrink-0" title="New notice" />
                       )}
-                      <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 truncate">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 truncate">
                         {msg.senderName || 'Principal'}
                       </span>
                     </div>

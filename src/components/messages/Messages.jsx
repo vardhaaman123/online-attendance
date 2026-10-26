@@ -25,9 +25,16 @@ import {
   ChevronLeft,
   Lock,
   CheckSquare,
-  AlertTriangle,
+  CornerUpLeft,
 } from 'lucide-react';
 import Modal from '../ui/Modal';
+import {
+  VideoCallProvider,
+  VideoCallButton,
+  IncomingCallOverlay,
+  ActiveCallScreen,
+  MissedCallMessage,
+} from './VideoCall';
 
 const EMOJIS = ['👍', '❤️', '🎉', '👏', '📢', '⏰', '📝', '✅'];
 
@@ -40,6 +47,7 @@ export default function Messages() {
   const [mobileView, setMobileView] = useState('list'); // 'list' | 'chat'
   const [messageText, setMessageText] = useState('');
   const [teacherSearch, setTeacherSearch] = useState('');
+
   const [studentSearch, setStudentSearch] = useState('');
   const [chatSearch, setChatSearch] = useState('');
   const [showSearchInput, setShowSearchInput] = useState(false);
@@ -50,6 +58,7 @@ export default function Messages() {
   const [selectedMsgIds, setSelectedMsgIds] = useState(new Set());
   const [deleteTarget, setDeleteTarget] = useState(null); // null | { isBatch: true } | { isBatch: false, msg: any }
   const [isDeleting, setIsDeleting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -305,6 +314,9 @@ export default function Messages() {
         if (normRole === 'admin') {
           return tIds.includes(msg.senderId) && (msgTargetRole === 'admin' || msg.targetId === 'admin' || myAllIds.includes(msg.targetId));
         }
+        if (normRole === 'student') {
+          return tIds.includes(msg.senderId) && (myAllIds.includes(msg.targetId) || isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds));
+        }
         return tIds.includes(msg.senderId) && myAllIds.includes(msg.targetId);
       } else if (tab === 'students') {
         const studentObj = (students || []).find(s => s.id === recId || s._docId === recId);
@@ -312,7 +324,7 @@ export default function Messages() {
           return isMsgSenderStudent(msg, studentObj, [recId]) && (msgTargetRole === 'admin' || msg.targetId === 'admin' || myAllIds.includes(msg.targetId));
         }
         if (normRole === 'student') {
-          return isMsgSenderStudent(msg, studentObj, [recId]) && isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds);
+          return false;
         }
         return isMsgSenderStudent(msg, studentObj, [recId]) && myAllIds.includes(msg.targetId);
       }
@@ -340,13 +352,13 @@ export default function Messages() {
           if (normRole === 'teacher' && (msgTargetRole === 'teacher' || msgTargetRole === 'all' || !msgTargetRole)) return true;
           if (normRole === 'student' && (msgTargetRole === 'student' || msgTargetRole === 'all' || !msgTargetRole)) return true;
         }
-        if (normRole === 'student' && (msgSenderRole === 'admin' || msg.senderId === 'admin')) {
-          return isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds) || myAllIds.includes(msg.targetId);
-        }
-        if ((msgSenderRole === 'admin' || msg.senderId === 'admin') && myAllIds.includes(msg.targetId)) return true;
+        if (normRole !== 'student' && (msgSenderRole === 'admin' || msg.senderId === 'admin') && myAllIds.includes(msg.targetId)) return true;
       } else if (tab === 'teachers') {
         if (normRole === 'admin') {
           return (msgSenderRole === 'teacher' || !msgSenderRole) && (msgTargetRole === 'admin' || msg.targetId === 'admin' || myAllIds.includes(msg.targetId));
+        }
+        if (normRole === 'student') {
+          return (msgSenderRole === 'teacher' || !msgSenderRole) && (myAllIds.includes(msg.targetId) || isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds));
         }
         return msgSenderRole === 'teacher' && myAllIds.includes(msg.targetId);
       } else if (tab === 'students') {
@@ -354,7 +366,7 @@ export default function Messages() {
           return (msgSenderRole === 'student' || !msgSenderRole) && (msgTargetRole === 'admin' || msg.targetId === 'admin' || myAllIds.includes(msg.targetId));
         }
         if (normRole === 'student') {
-          return msgSenderRole === 'student' && isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds);
+          return false;
         }
         return msgSenderRole === 'student' && myAllIds.includes(msg.targetId);
       }
@@ -461,13 +473,19 @@ export default function Messages() {
 
   // Ensure valid recipient selection when switching tabs or when filtered list changes
   useEffect(() => {
+    setReplyingTo(null);
     if (normRole === 'student' && activeTab === 'students') {
       setActiveTab('broadcast');
       setSelectedRecipientId('all');
       return;
     }
     if (activeTab === 'broadcast') {
-      if (!['all', 'teachers', 'students', 'admin'].includes(selectedRecipientId)) {
+      const allowed = normRole === 'student'
+        ? ['all', 'students']
+        : normRole === 'admin'
+        ? ['all', 'students', 'teachers']
+        : ['all', 'teachers', 'students', 'admin'];
+      if (!allowed.includes(selectedRecipientId)) {
         setSelectedRecipientId('all');
       }
     } else if (activeTab === 'teachers') {
@@ -498,7 +516,7 @@ export default function Messages() {
   }, [normRole, filteredTeachers, getTabUnreadCount]);
 
   const handleAttachmentClick = (type) => {
-    if (normRole === 'student') return;
+    if (normRole === 'student' && activeTab !== 'teachers') return;
     if (!fileInputRef.current) return;
     if (type === 'image') {
       fileInputRef.current.accept = 'image/*,video/*';
@@ -515,7 +533,7 @@ export default function Messages() {
   };
 
   const handleFileChange = (e) => {
-    if (normRole === 'student') return;
+    if (normRole === 'student' && activeTab !== 'teachers') return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -538,8 +556,14 @@ export default function Messages() {
 
   const handleSend = (textToSend, attachment = null) => {
     if (normRole === 'student') {
-      addToast?.('Students cannot send or reply to messages. Messages are read-only.', 'warning');
-      return;
+      if (activeTab !== 'teachers') {
+        addToast?.('Students can only message teachers. Broadcast channels are read-only.', 'warning');
+        return;
+      }
+      if (!selectedRecipientId || selectedRecipientId === 'all' || selectedRecipientId === 'admin') {
+        addToast?.('Please select a teacher to send a message.', 'warning');
+        return;
+      }
     }
     const text = (typeof textToSend === 'string' ? textToSend : messageText).trim();
     if (!text && !attachment) return;
@@ -548,6 +572,10 @@ export default function Messages() {
     let targetId = 'all';
 
     if (activeTab === 'broadcast') {
+      if (normRole === 'student') {
+        addToast?.('Broadcast announcements can only be posted by school staff.', 'warning');
+        return;
+      }
       if (selectedRecipientId === 'admin') {
         targetRole = 'admin';
         targetId = 'admin';
@@ -563,12 +591,22 @@ export default function Messages() {
         return;
       }
     } else if (activeTab === 'students') {
+      if (normRole === 'student') {
+        addToast?.('Students cannot send direct messages to other students.', 'warning');
+        return;
+      }
       targetRole = 'student';
       targetId = selectedRecipientId;
       if (!targetId) {
         addToast?.('Please select a student to send a message.', 'warning');
         return;
       }
+    }
+
+    // Strict role protection: Students can only message teachers
+    if (normRole === 'student' && (targetRole !== 'teacher' || targetId === 'admin' || targetRole === 'admin' || targetRole === 'student')) {
+      addToast?.('Students can only send direct messages to teachers.', 'warning');
+      return;
     }
 
     const senderId = normRole === 'student'
@@ -623,9 +661,17 @@ export default function Messages() {
       targetParentEmail,
       text,
       attachment,
+      replyTo: replyingTo
+        ? {
+            id: replyingTo.id,
+            senderName: replyingTo.senderName,
+            text: replyingTo.text || (replyingTo.attachment ? '[Attachment]' : ''),
+          }
+        : null,
     });
 
     setMessageText('');
+    setReplyingTo(null);
     setShowEmojiBar(false);
     setShowAttachmentMenu(false);
   };
@@ -643,18 +689,8 @@ export default function Messages() {
         // 1. Broadcast channels
         if (activeTab === 'broadcast') {
           if (selectedRecipientId === 'admin') {
+            if (normRole === 'student') return false;
             // Direct 1-on-1 channel to School Administrator
-            if (normRole === 'student') {
-              const myStu = currentStudentRecord || currentStudent;
-              const isSentByMeToAdmin =
-                (isMsgSenderStudent(msg, myStu, myAllIds) || myAllIds.includes(msgSenderId)) &&
-                (msgTargetRole === 'admin' || msgTargetId === 'admin');
-              const isSentByAdminToMe =
-                (msgSenderRole === 'admin' || msgSenderId === 'admin') &&
-                (isMsgTargetStudent(msg, myStu, myAllIds) || myAllIds.includes(msgTargetId));
-              return isSentByMeToAdmin || isSentByAdminToMe;
-            }
-
             if (normRole === 'teacher') {
               const isSentByMeToAdmin =
                 myAllIds.includes(msgSenderId) &&
@@ -698,6 +734,16 @@ export default function Messages() {
           }
 
           // Direct 1-on-1 (Teacher to Teacher, or Student to Teacher)
+          if (normRole === 'student') {
+            const isSentByMeToTeacher =
+              (myAllIds.includes(msgSenderId) || isMsgSenderStudent(msg, currentStudentRecord || currentStudent, myAllIds)) &&
+              recipientAllIds.includes(msgTargetId);
+            const isSentByTeacherToMe =
+              recipientAllIds.includes(msgSenderId) &&
+              (myAllIds.includes(msgTargetId) || isMsgTargetStudent(msg, currentStudentRecord || currentStudent, myAllIds));
+            return isSentByMeToTeacher || isSentByTeacherToMe;
+          }
+
           const isSentByMeToTarget =
             myAllIds.includes(msgSenderId) && recipientAllIds.includes(msgTargetId);
           const isSentByTargetToMe =
@@ -721,15 +767,7 @@ export default function Messages() {
           }
 
           if (normRole === 'student') {
-            // Student viewing a classmate
-            const myStu = currentStudentRecord || currentStudent;
-            const isSentByMeToTarget =
-              (isMsgSenderStudent(msg, myStu, myAllIds) || myAllIds.includes(msgSenderId)) &&
-              (isMsgTargetStudent(msg, selectedStudent, recipientAllIds) || recipientAllIds.includes(msgTargetId));
-            const isSentByTargetToMe =
-              (isMsgSenderStudent(msg, selectedStudent, recipientAllIds) || recipientAllIds.includes(msgSenderId)) &&
-              (isMsgTargetStudent(msg, myStu, myAllIds) || myAllIds.includes(msgTargetId));
-            return isSentByMeToTarget || isSentByTargetToMe;
+            return false;
           }
 
           // Direct 1-on-1 (Teacher to Student)
@@ -960,10 +998,44 @@ export default function Messages() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleCallEnd = useCallback(({ status, duration, remoteId, remoteName, remoteRole }) => {
+    const allPeople = [...(teachers || []), ...(students || [])];
+    const matched = allPeople.find(p =>
+      (remoteId && (p.id === remoteId || p._docId === remoteId)) ||
+      (remoteName && (p.name || '').toLowerCase().trim() === (remoteName || '').toLowerCase().trim())
+    );
+    const targetId = remoteId || matched?.id || matched?._docId || remoteName;
+    const targetRole = remoteRole || 'teacher';
+
+    if (status === 'ended' || status === 'missed' || status === 'declined') {
+      addMessage?.({
+        type: 'call',
+        callStatus: status,
+        callDuration: duration || 0,
+        senderId: myId,
+        senderName: normRole === 'student' ? currentStudentRecord?.name || 'Student' : user?.name || 'Teacher',
+        senderRole: normRole,
+        targetId,
+        targetRole,
+        targetName: remoteName || matched?.name || 'User',
+        text: '',
+      });
+    }
+  }, [myId, normRole, currentStudentRecord, user, teachers, students, addMessage]);
+
   return (
-    <div className="flex flex-col md:flex-row h-full min-h-0 overflow-hidden bg-[#070A12] w-full max-w-full">
+    <VideoCallProvider
+      myId={myId}
+      myAllIds={myAllIds}
+      myName={normRole === 'student' ? currentStudentRecord?.name || 'Student' : user?.name || 'Teacher'}
+      myRole={normRole}
+      onCallEnd={handleCallEnd}
+    >
+      <IncomingCallOverlay />
+      <ActiveCallScreen />
+      <div className="flex flex-col md:flex-row h-full min-h-0 overflow-hidden bg-[#070A12] w-full max-w-full">
       {/* ── LEFT SIDEBAR: CHANNELS & DIRECT MESSAGES ── */}
-      <div className={`w-full md:w-[280px] lg:w-[320px] flex-shrink-0 flex-col relative z-10 border-b md:border-b-0 md:border-r border-white/[0.08] bg-[#070A12]
+      <div className={`w-full md:w-[320px] lg:w-[340px] xl:w-[360px] flex-shrink-0 flex-col relative z-10 border-b md:border-b-0 md:border-r border-white/[0.08] bg-[#070A12]
         ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
         h-full min-h-0`}>
         
@@ -985,26 +1057,23 @@ export default function Messages() {
 
         {/* Segmented Pill Navigation: Single unified switcher bar */}
         <div className="flex-shrink-0 px-3 pt-2.5 pb-2">
-          <div className="p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center gap-1">
+          <div className={`p-1 rounded-xl bg-white/[0.04] border border-white/[0.06] grid ${normRole !== 'student' ? 'grid-cols-3' : 'grid-cols-2'} gap-1 w-full min-w-0`}>
             <button
               onClick={() => {
                 setActiveTab('broadcast');
                 setSelectedRecipientId('all');
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+              className={`w-full min-w-0 py-1.5 px-1 sm:px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer relative ${
                 activeTab === 'broadcast'
                   ? 'bg-blue-600/20 text-blue-400 shadow-xs'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
               title="Broadcast announcements"
             >
-              <Megaphone size={13} />
-              <span>Channels</span>
+              <Megaphone size={13} className="flex-shrink-0" />
+              <span className="truncate">Channels</span>
               {getTabUnreadCount('broadcast') > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0" />
-              )}
-              {getTabUnreadCount('broadcast') > 0 && (
-                <span className="w-4 h-4 rounded-full bg-blue-500 text-[9px] font-bold text-white flex items-center justify-center">
+                <span className="min-w-4 h-4 px-1 rounded-full bg-blue-500 text-[9px] font-bold text-white flex items-center justify-center flex-shrink-0">
                   {getTabUnreadCount('broadcast')}
                 </span>
               )}
@@ -1018,20 +1087,17 @@ export default function Messages() {
                   setSelectedRecipientId(firstId);
                   setStudentSearch('');
                 }}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+                className={`w-full min-w-0 py-1.5 px-1 sm:px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer relative ${
                   activeTab === 'students'
                     ? 'bg-emerald-600/20 text-emerald-400 shadow-xs'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                 }`}
                 title="Direct messages with students"
               >
-                <GraduationCap size={13} />
-                <span>Students</span>
+                <GraduationCap size={13} className="flex-shrink-0" />
+                <span className="truncate">Students</span>
                 {getTabUnreadCount('students') > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0" />
-                )}
-                {getTabUnreadCount('students') > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-[9px] font-bold text-white flex items-center justify-center">
+                  <span className="min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-[9px] font-bold text-white flex items-center justify-center flex-shrink-0">
                     {getTabUnreadCount('students')}
                   </span>
                 )}
@@ -1044,20 +1110,17 @@ export default function Messages() {
                 setSelectedRecipientId(filteredTeachers[0]?.id || null);
                 setTeacherSearch('');
               }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
+              className={`w-full min-w-0 py-1.5 px-1 sm:px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer relative ${
                 activeTab === 'teachers'
                   ? 'bg-blue-600/20 text-blue-400 shadow-xs'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
               }`}
               title="Direct messages with teachers"
             >
-              <Users size={13} />
-              <span>Teachers</span>
+              <Users size={13} className="flex-shrink-0" />
+              <span className="truncate">Teachers</span>
               {getTabUnreadCount('teachers') > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0" />
-              )}
-              {getTabUnreadCount('teachers') > 0 && (
-                <span className="w-4 h-4 rounded-full bg-blue-500 text-[9px] font-bold text-white flex items-center justify-center">
+                <span className="min-w-4 h-4 px-1 rounded-full bg-blue-500 text-[9px] font-bold text-white flex items-center justify-center flex-shrink-0">
                   {getTabUnreadCount('teachers')}
                 </span>
               )}
@@ -1115,7 +1178,7 @@ export default function Messages() {
                 { id: 'all', title: 'Everyone', desc: 'School-wide announcements', icon: Megaphone, count: 'All', color: 'text-blue-400 bg-blue-500/10' },
                 { id: 'students', title: 'All Students', desc: 'Student notices & alerts', icon: GraduationCap, count: 'Students', color: 'text-emerald-400 bg-emerald-500/10' },
                 ...(normRole !== 'student' ? [{ id: 'teachers', title: 'All Teachers', desc: 'Staff & department memos', icon: UserCheck, count: 'Faculty', color: 'text-indigo-400 bg-indigo-500/10' }] : []),
-                ...(normRole !== 'admin' ? [{ id: 'admin', title: 'School Admin', desc: 'Direct message to administration', icon: ShieldCheck, count: 'Admin', color: 'text-purple-400 bg-purple-500/10' }] : [])
+                ...(normRole === 'teacher' ? [{ id: 'admin', title: 'School Admin', desc: 'Direct message to administration', icon: ShieldCheck, count: 'Admin', color: 'text-purple-400 bg-purple-500/10' }] : [])
               ].map((b) => {
                 const Icon = b.icon;
                 const isSelected = selectedRecipientId === b.id;
@@ -1153,7 +1216,7 @@ export default function Messages() {
                           {b.title}
                         </span>
                         {unread > 0 ? (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-500 text-white flex-shrink-0">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white flex-shrink-0">
                             {unread}
                           </span>
                         ) : (
@@ -1214,7 +1277,7 @@ export default function Messages() {
                           {student.name}
                         </p>
                         {unread > 0 && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500 text-white flex-shrink-0">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white flex-shrink-0">
                             {unread}
                           </span>
                         )}
@@ -1273,7 +1336,7 @@ export default function Messages() {
                           {teacher.name}
                         </p>
                         {unread > 0 && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-500 text-white flex-shrink-0">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white flex-shrink-0">
                             {unread}
                           </span>
                         )}
@@ -1323,6 +1386,26 @@ export default function Messages() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Video Call Button — only in 1-on-1 DM tabs */}
+            {(activeTab === 'teachers' || activeTab === 'students') &&
+              selectedRecipientId &&
+              selectedRecipientId !== 'all' &&
+              selectedRecipientId !== 'admin' && (() => {
+                const calleeObj = activeTab === 'teachers' ? selectedTeacher : selectedStudent;
+                const calleeId = calleeObj?.id || calleeObj?._docId || selectedRecipientId;
+                const calleeName = calleeObj?.name || recipientMeta.title;
+                const calleeRole = activeTab === 'teachers' ? 'teacher' : 'student';
+                return (
+                  <VideoCallButton
+                    calleeId={calleeId}
+                    calleeIds={recipientAllIds}
+                    calleeName={calleeName}
+                    calleeRole={calleeRole}
+                  />
+                );
+              })()
+            }
+
             {/* Select Messages Mode Toggle */}
             {filteredMessages.length > 0 && (
               <button
@@ -1401,8 +1484,8 @@ export default function Messages() {
             filteredMessages.map((msg) => {
               const isMe =
                 myAllIds.includes(msg.senderId) ||
-                (normRole === 'admin' && ((msg.senderRole || '').toLowerCase() === 'admin' || msg.senderId === 'admin'));
-              const canDelete = canDeleteMessage(msg);
+                (normRole === 'admin' && ((msg.senderRole || '').toLowerCase() === 'admin' || msg.senderId === 'admin')) ||
+                (normRole === 'student' && isMsgSenderStudent(msg, currentStudentRecord || currentStudent, myAllIds));
               const isSelected = selectedMsgIds.has(msg.id);
 
               const roleColors = {
@@ -1410,6 +1493,27 @@ export default function Messages() {
                 teacher: 'bg-blue-500/15 text-blue-300',
                 student: 'bg-emerald-500/15 text-emerald-300',
               };
+
+              // Render call log messages differently
+              if (msg.type === 'call') {
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fade-in`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1 px-1">
+                      <span className="text-[11px] font-medium text-slate-300">
+                        {isMe ? 'You' : msg.senderName}
+                      </span>
+                      <span className="text-[10px] text-slate-500 flex items-center gap-0.5 ml-1">
+                        <Clock size={10} />
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <MissedCallMessage msg={msg} isMe={isMe} />
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -1443,7 +1547,7 @@ export default function Messages() {
                       {isMe ? 'You' : msg.senderName}
                     </span>
                     <span
-                      className={`text-[9px] px-1.5 py-0.2 rounded font-semibold uppercase ${
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${
                         roleColors[msg.senderRole] || 'bg-slate-500/15 text-slate-300'
                       }`}
                     >
@@ -1469,6 +1573,25 @@ export default function Messages() {
                         : 'bg-[#131927] border border-white/[0.06] text-slate-100 rounded-tl-xs shadow-sm'
                     }`}
                   >
+                    {/* Quoted Reply Preview */}
+                    {msg.replyTo && (
+                      <div
+                        className={`mb-2 p-2 rounded-xl text-xs border-l-2 ${
+                          isMe
+                            ? 'bg-black/25 border-white/60 text-white'
+                            : 'bg-black/30 border-blue-400 text-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1 font-semibold text-[11px] opacity-90 mb-0.5">
+                          <CornerUpLeft size={10} />
+                          <span>{msg.replyTo.senderName || 'Original message'}</span>
+                        </div>
+                        <p className="line-clamp-2 text-[11px] opacity-80 leading-snug">
+                          {msg.replyTo.text || (msg.replyTo.attachment ? '[Attachment]' : '')}
+                        </p>
+                      </div>
+                    )}
+
                     {msg.text && <div>{msg.text}</div>}
                     
                     {msg.attachment && (
@@ -1510,6 +1633,20 @@ export default function Messages() {
                         >
                           <CheckSquare size={12} />
                         </button>
+                        {/* Reply button: Enabled if student is in teachers tab, or for staff in any tab */}
+                        {!(normRole === 'student' && activeTab === 'broadcast') && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReplyingTo(msg);
+                            }}
+                            className="p-1 text-slate-400 hover:text-blue-400 rounded-full hover:bg-white/[0.08] transition-colors"
+                            title="Reply to message"
+                          >
+                            <CornerUpLeft size={12} />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleCopy(msg.id, msg.text)}
@@ -1578,7 +1715,7 @@ export default function Messages() {
 
         {/* Quick Emoji Bar */}
         {(() => {
-          if (isSelectMode || normRole === 'student') return null;
+          if (isSelectMode || (normRole === 'student' && activeTab !== 'teachers')) return null;
           const isNoRecipient = (activeTab === 'teachers' && !selectedRecipientId) || (activeTab === 'students' && !selectedRecipientId);
           return showEmojiBar && !isNoRecipient ? (
             <div className="flex-shrink-0 px-4 py-1.5 bg-[#070A12] border-t border-white/[0.06] flex items-center gap-1.5 overflow-x-auto custom-scrollbar animate-fade-in">
@@ -1602,7 +1739,7 @@ export default function Messages() {
           if (isSelectMode) {
             return (
               <div className="flex-shrink-0 px-4 py-3 bg-[#0c101d] border-t border-white/[0.08] shadow-2xl relative z-20 pb-safe animate-fade-in">
-                <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                <div className="w-full flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <button
                       type="button"
@@ -1651,11 +1788,11 @@ export default function Messages() {
             );
           }
 
-          if (normRole === 'student') {
+          if (normRole === 'student' && activeTab === 'broadcast') {
             return (
               <div className="flex-shrink-0 px-4 py-3 bg-[#070A12] text-center text-xs text-slate-400 border-t border-white/[0.06] flex items-center justify-center gap-2">
                 <Lock size={13} className="text-slate-500" />
-                <span>Students can view all announcements and messages. Replying is disabled.</span>
+                <span>Broadcast channels are view-only. You can message and reply to your teachers under the Teachers tab.</span>
               </div>
             );
           }
@@ -1672,7 +1809,29 @@ export default function Messages() {
 
           return (
             <div className="flex-shrink-0 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#070A12] relative z-20 pb-safe">
-              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="max-w-4xl mx-auto">
+              {/* Active Replying Banner */}
+              {replyingTo && (
+                <div className="w-full mb-2 px-3.5 py-1.5 bg-[#161D2F] border border-white/10 rounded-xl flex items-center justify-between text-xs animate-fade-in shadow-md">
+                  <div className="flex items-center gap-2 overflow-hidden text-slate-300">
+                    <CornerUpLeft size={13} className="text-blue-400 flex-shrink-0" />
+                    <span className="font-semibold text-blue-400 flex-shrink-0">
+                      Replying to {replyingTo.senderName}:
+                    </span>
+                    <span className="truncate text-slate-400">
+                      {replyingTo.text || (replyingTo.attachment ? '[Attachment]' : '')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReplyingTo(null)}
+                    className="p-1 text-slate-400 hover:text-white rounded-md hover:bg-white/[0.06] flex-shrink-0 transition-colors"
+                    title="Cancel reply"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="w-full">
                 <div className="flex items-center gap-1.5 bg-[#121826] border border-white/[0.08] focus-within:border-blue-500/40 focus-within:ring-2 focus-within:ring-blue-500/10 rounded-2xl p-1.5 transition-all">
                   
                   {/* Attachment Menu Toggle */}
@@ -1830,5 +1989,6 @@ export default function Messages() {
         </div>
       </Modal>
     </div>
+    </VideoCallProvider>
   );
 }

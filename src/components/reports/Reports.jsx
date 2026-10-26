@@ -43,14 +43,14 @@ export default function Reports() {
     : 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+    <div className="w-full space-y-6 animate-fade-in">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Comprehensive attendance insights, metrics and historical trends.</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Weekly Avg', value: `${avgWeekly}%`, sub: 'Last 5 working days', color: 'text-blue-600 dark:text-blue-400', glow: 'dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]' },
           { label: 'Monthly Avg', value: `${avgMonthly}%`, sub: 'Last 6 months', color: 'text-emerald-600 dark:text-emerald-400', glow: 'dark:shadow-[0_0_20px_rgba(16,185,129,0.1)]' },

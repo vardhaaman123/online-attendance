@@ -18,6 +18,8 @@ import {
   RefreshCw,
   CheckSquare,
   Check,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -31,18 +33,25 @@ import * as XLSX from 'xlsx';
 
 function ConfirmDeleteTeacherModal({ open, teacher, onConfirm, onClose }) {
   return (
-    <Modal open={open} onClose={onClose} title="Delete Teacher" maxWidth="max-w-md">
-      <div className="space-y-4">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          Are you sure you want to remove teacher{' '}
-          <span className="font-bold text-slate-900 dark:text-white">{teacher?.name}</span>?
-          This teacher will no longer be able to log in to take attendance for{' '}
-          <span className="font-semibold text-brand-blue">Class {teacher?.class}-{teacher?.section}</span>.
-        </p>
-        <div className="flex gap-3 justify-end pt-2">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
-          <button onClick={onConfirm} className="btn-danger">Delete Teacher</button>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Delete Teacher"
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex gap-3 justify-end w-full">
+          <button onClick={onClose} className="btn-secondary px-4 py-2 cursor-pointer">Cancel</button>
+          <button onClick={onConfirm} className="btn-danger px-4 py-2 cursor-pointer">Delete Teacher</button>
         </div>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-slate-300">
+          Are you sure you want to remove teacher{' '}
+          <span className="font-bold text-white">{teacher?.name}</span>?
+          This teacher will no longer be able to log in to take attendance for{' '}
+          <span className="font-semibold text-blue-400">Class {teacher?.class}-{teacher?.section}</span>.
+        </p>
       </div>
     </Modal>
   );
@@ -322,7 +331,7 @@ function DeleteAllSelectorModal({
               <CheckSquare size={13} />
               Select Specific {targetType === 'students' ? 'Students' : 'Teachers'}
               {(targetType === 'students' ? selectedStudentIds.size : selectedTeacherIds.size) > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-bold">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-rose-500 text-white font-bold">
                   {targetType === 'students' ? selectedStudentIds.size : selectedTeacherIds.size}
                 </span>
               )}
@@ -555,40 +564,47 @@ export default function TeacherList() {
   const [viewTeacher, setViewTeacher] = useState(null);
   const [slipTeacher, setSlipTeacher] = useState(null);
   const [activeMenuTeacher, setActiveMenuTeacher] = useState(null);
-  const [menuPosition, setMenuPosition] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleToggleMenu = (e, teacher) => {
     e.stopPropagation();
-    if (activeMenuTeacher?.id === teacher.id) {
-      setActiveMenuTeacher(null);
-      setMenuPosition(null);
-    } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const fitsBelow = rect.bottom + 210 <= window.innerHeight;
-      setActiveMenuTeacher(teacher);
-      setMenuPosition({
-        top: fitsBelow ? rect.bottom + 6 : Math.max(10, rect.top - 210),
-        right: Math.max(12, window.innerWidth - rect.right),
-      });
-    }
+    setActiveMenuTeacher(activeMenuTeacher?.id === teacher.id ? null : teacher);
   };
 
+  const liveActiveMenuTeacher = useMemo(() => {
+    if (!activeMenuTeacher) return null;
+    return (teachers || []).find(
+      t => (t.id && (t.id === activeMenuTeacher.id || t._docId === activeMenuTeacher.id)) ||
+           (t.email && t.email === activeMenuTeacher.email)
+    ) || activeMenuTeacher;
+  }, [activeMenuTeacher, teachers]);
+
+  // Lock body scroll when Teacher Quick Actions Modal is active
   useEffect(() => {
-    const handleScrollOrResize = () => {
-      if (activeMenuTeacher) {
-        setActiveMenuTeacher(null);
-        setMenuPosition(null);
+    if (activeMenuTeacher) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      const hasOtherOpenModals = document.querySelector('.fixed.inset-0.z-\\[60\\]');
+      if (!hasOtherOpenModals) {
+        document.body.style.overflow = '';
       }
     };
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-    return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
-    };
   }, [activeMenuTeacher]);
+
+  // Close Quick Actions modal on Escape ONLY if no top child modal is open
+  useEffect(() => {
+    if (!activeMenuTeacher) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (slipTeacher || viewTeacher || editTeacher || deleteTarget) return;
+        setActiveMenuTeacher(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeMenuTeacher, slipTeacher, viewTeacher, editTeacher, deleteTarget]);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -632,6 +648,7 @@ export default function TeacherList() {
     try {
       await deleteTeacher(deleteTarget.id || deleteTarget._docId);
       addToast(`Teacher ${deleteTarget.name} has been removed.`, 'info');
+      setActiveMenuTeacher(null);
     } catch (err) {
       console.error('Failed to delete teacher:', err);
       addToast('Failed to delete teacher. Please try again.', 'error');
@@ -804,7 +821,7 @@ export default function TeacherList() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-3.5 sm:space-y-6 animate-fade-in">
+    <div className="w-full space-y-3.5 sm:space-y-6 animate-fade-in">
       {/* ── HEADER: Clean Title & Action Options ── */}
       <div className="flex items-center justify-between gap-2 sm:gap-3 pb-0.5">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Teachers</h1>
@@ -963,7 +980,7 @@ export default function TeacherList() {
       </div>
 
       {/* Filters: Search Bar & Class / Section Filters */}
-      <div className="rounded-2xl bg-white dark:bg-[#0B0F1A]/80 border border-slate-200/80 dark:border-white/10 p-2 sm:p-3 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative z-10">
+      <div className="rounded-2xl bg-white dark:bg-[#0B0F1A]/80 border border-slate-200/80 dark:border-white/10 p-2 sm:p-3 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative z-20">
         <div className="flex items-center gap-1.5 sm:gap-2.5 w-full">
           {/* Search Bar - fills available space */}
           <div className="flex-1 min-w-0 relative">
@@ -1007,12 +1024,12 @@ export default function TeacherList() {
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 dark:bg-[#111726]/80 border-b border-slate-100 dark:border-white/10">
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Teacher</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Email</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Class & Division</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3 hidden md:table-cell">Subject</th>
-                <th className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Status</th>
-                <th className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Actions</th>
+                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Teacher</th>
+                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Email</th>
+                <th className="w-36 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Class & Division</th>
+                <th className="w-36 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5 hidden md:table-cell">Subject</th>
+                <th className="w-28 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Status</th>
+                <th className="w-24 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -1036,7 +1053,7 @@ export default function TeacherList() {
                       }`}
                     >
                       {/* Teacher name + initials avatar */}
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div
                             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-xs"
@@ -1059,7 +1076,7 @@ export default function TeacherList() {
                       </td>
 
                       {/* Email */}
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
                           <Mail size={13} className="text-slate-500 flex-shrink-0" />
                           <span className="break-all">{teacher.email}</span>
@@ -1067,28 +1084,28 @@ export default function TeacherList() {
                       </td>
 
                       {/* Class & Division badge */}
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                           Class {teacher.class}-{teacher.section}
                         </span>
                       </td>
 
                       {/* Subject */}
-                      <td className="px-4 py-3 hidden md:table-cell">
+                      <td className="px-5 py-3.5 hidden md:table-cell">
                         <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                           {teacher.subject || 'General'}
                         </span>
                       </td>
 
                       {/* Status */}
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-5 py-3.5 text-center">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                           Active
                         </span>
                       </td>
 
                       {/* Actions - Three-Dots Button */}
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-5 py-3.5 text-center">
                         <button
                           type="button"
                           onClick={(e) => handleToggleMenu(e, teacher)}
@@ -1146,7 +1163,7 @@ export default function TeacherList() {
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{teacher.name}</p>
                         {isRecentlyUpdated && (
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse">
                             Updated!
                           </span>
                         )}
@@ -1187,87 +1204,172 @@ export default function TeacherList() {
         </div>
       </div>
 
-      {/* Floating 3-dots Dropdown Menu (Fixed coordinates to prevent table overflow clipping) */}
-      {activeMenuTeacher && menuPosition && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => {
-              setActiveMenuTeacher(null);
-              setMenuPosition(null);
-            }}
-          />
-          <div
-            style={{ top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
-            className="fixed w-52 bg-white dark:bg-[#111726] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl py-1.5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
-          >
-            <div className="px-3 py-1.5 border-b border-slate-100 dark:border-white/[0.08] mb-1">
-              <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
-                {activeMenuTeacher.name}
-              </p>
-              <p className="text-[10px] text-slate-400 font-mono truncate">
-                Class {activeMenuTeacher.class}-{activeMenuTeacher.section} • {activeMenuTeacher.subject || 'All Subjects'}
-              </p>
+      {/* ── Centered Teacher Quick Actions Modal ── */}
+      {activeMenuTeacher && (() => {
+        const currentTeacher = liveActiveMenuTeacher || activeMenuTeacher;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
+            {/* Frosted Dark Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity cursor-pointer"
+              onClick={() => setActiveMenuTeacher(null)}
+            />
+
+            {/* Centered Modal Card */}
+            <div className="relative w-full max-w-sm sm:max-w-md bg-[#0C101A]/95 dark:bg-[#0B0F19]/95 border border-white/15 rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(59,130,246,0.18)] backdrop-blur-2xl overflow-hidden animate-modal-pop z-10 select-none">
+              {/* Top ambient illumination glow */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent pointer-events-none" />
+
+              {/* Header: Teacher Info + Close button */}
+              <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-md border border-white/20"
+                    style={{ background: `hsl(${(String(currentTeacher.name || 'T').charCodeAt(0) * 53) % 360}, 65%, 48%)` }}
+                  >
+                    {String(currentTeacher.name || 'T').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-white truncate leading-tight">
+                      {currentTeacher.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                        Class {currentTeacher.class}-{currentTeacher.section}
+                      </span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-white/10 text-slate-300">
+                        {currentTeacher.subject || 'All Subjects'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveMenuTeacher(null)}
+                  className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer flex-shrink-0 active:scale-95"
+                  title="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Action Items List */}
+              <div className="p-4 space-y-2.5">
+                {/* Credentials Slip */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSlipTeacher(currentTeacher);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-emerald-500/10 border border-white/[0.06] hover:border-emerald-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                      <Key size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                        Faculty Credentials
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Print or download teacher login slip & password
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* View Details */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewTeacher(currentTeacher);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-blue-500/10 border border-white/[0.06] hover:border-blue-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(59,130,246,0.2)]">
+                      <Eye size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        Teacher Profile
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Assigned classes, subject & account details
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* Edit Details */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fresh = (teachers || []).find(
+                      x => (x.id && (x.id === currentTeacher.id || x._docId === currentTeacher.id)) || (x.email && x.email === currentTeacher.email)
+                    ) || currentTeacher;
+                    setEditTeacher(fresh);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.06] hover:border-amber-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                      <Edit2 size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-amber-300 transition-colors">
+                        Edit Teacher
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Modify name, assigned class, section or subject
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* Delete Teacher */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteTarget(currentTeacher);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.06] hover:border-rose-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-rose-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(244,63,94,0.2)]">
+                      <Trash2 size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-rose-400 group-hover:text-rose-300 transition-colors">
+                        Delete Teacher
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Revoke credentials and remove from faculty roster
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-rose-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+              </div>
+
+              {/* Footer Dismiss Button */}
+              <div className="px-4 pb-4 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveMenuTeacher(null)}
+                  className="w-full py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer text-center"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const t = activeMenuTeacher;
-                setActiveMenuTeacher(null);
-                setMenuPosition(null);
-                setSlipTeacher(t);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Key size={14} className="text-emerald-500 dark:text-emerald-400" />
-              <span>Credentials Slip</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const t = activeMenuTeacher;
-                setActiveMenuTeacher(null);
-                setMenuPosition(null);
-                setViewTeacher(t);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Eye size={14} className="text-blue-500 dark:text-blue-400" />
-              <span>View Details</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const t = activeMenuTeacher;
-                setActiveMenuTeacher(null);
-                setMenuPosition(null);
-                const fresh = (teachers || []).find(
-                  x => (x.id && (x.id === t.id || x._docId === t.id)) || (x.email && x.email === t.email)
-                ) || t;
-                setEditTeacher(fresh);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:text-amber-400 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Edit2 size={14} className="text-amber-500 dark:text-amber-400" />
-              <span>Edit Details</span>
-            </button>
-            <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
-            <button
-              type="button"
-              onClick={() => {
-                const t = activeMenuTeacher;
-                setActiveMenuTeacher(null);
-                setMenuPosition(null);
-                setDeleteTarget(t);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Trash2 size={14} className="text-rose-500 dark:text-rose-400" />
-              <span>Delete Teacher</span>
-            </button>
           </div>
-        </>
-      )}
+        );
+      })()}
 
       <ConfirmDeleteTeacherModal
         open={!!deleteTarget}

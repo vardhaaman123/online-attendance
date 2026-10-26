@@ -117,31 +117,32 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
     <div className="flex flex-col h-full select-none">
       {/* Top Header / Avatar */}
       {isMobile ? (
-        <div className="h-12 flex items-center px-3 border-b border-white/[0.08] flex-shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-b from-white/[0.12] to-white/[0.04] p-[1px] shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-white/15 flex items-center justify-center flex-shrink-0 backdrop-blur-xl">
-            <div className="w-full h-full rounded-[7px] bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-inner">
-              <span className="text-white text-[11px] font-bold select-none">
+        <div className="h-14 flex items-center px-3.5 border-b border-white/[0.08] flex-shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-b from-white/[0.12] to-white/[0.04] p-[1px] shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-white/15 flex items-center justify-center flex-shrink-0 backdrop-blur-xl">
+            <div className="w-full h-full rounded-[10px] bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-inner">
+              <span className="text-white text-xs font-bold select-none">
                 {avatarLetter}
               </span>
             </div>
           </div>
 
           <div className="ml-2.5 truncate flex-1 min-w-0">
-            <p className="text-[12px] font-semibold text-white truncate leading-tight tracking-tight">
+            <p className="text-[13px] font-semibold text-white truncate leading-tight tracking-tight">
               {user?.collegeName || settings.collegeName || 'Attendify'}
             </p>
-            <p className="text-[9.5px] text-slate-400 truncate leading-tight mt-0.5">
+            <p className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">
               School Management
             </p>
           </div>
 
           {onClose && (
             <button
+              type="button"
               onClick={onClose}
-              className="w-6 h-6 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white border border-white/10 cursor-pointer transition-all flex items-center justify-center flex-shrink-0 ml-1.5 active:scale-95"
+              className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] active:bg-white/[0.18] text-slate-400 hover:text-white border border-white/10 cursor-pointer transition-all flex items-center justify-center flex-shrink-0 ml-1.5 active:scale-95 shadow-xs"
               aria-label="Close menu"
             >
-              <X size={13} />
+              <X size={16} />
             </button>
           )}
         </div>
@@ -186,8 +187,8 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
 
       {/* Role badge: Liquid Glass pill */}
       {isMobile ? (
-        <div className="px-3 pt-2 pb-0.5 flex-shrink-0">
-          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider border backdrop-blur-md shadow-xs ${roleBadgeStyle}`}>
+        <div className="px-3.5 pt-2.5 pb-1 flex-shrink-0">
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9.5px] font-bold uppercase tracking-wider border backdrop-blur-md shadow-xs ${roleBadgeStyle}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${roleDotStyle} animate-pulse`} />
             <span>{roleLabel}</span>
           </div>
@@ -208,7 +209,7 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
       )}
 
       {/* Navigation list */}
-      <nav className={`${isMobile ? 'px-2 py-1.5 space-y-1' : 'flex-1 px-2.5 py-2.5 space-y-1'} overflow-y-auto custom-scrollbar overflow-x-hidden ${isMobile ? 'flex-1' : ''}`}>
+      <nav className={`${isMobile ? 'px-2.5 py-1.5 space-y-1' : 'flex-1 px-2.5 py-2.5 space-y-1'} overflow-y-auto custom-scrollbar overflow-x-hidden ${isMobile ? 'flex-1' : ''}`}>
         {navItems.map(({ to, label, icon: Icon }) => {
           const isMessages = to === '/messages';
           const hasUnread = isMessages && unreadMessagesCount > 0;
@@ -218,10 +219,14 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
               to={to}
               onClick={onClose}
               className={({ isActive }) =>
-                `group flex items-center ${isMobile ? 'h-8.5 px-2.5 rounded-lg text-[12.5px]' : 'h-10 px-3 rounded-xl sm:rounded-2xl text-[13.5px]'} font-medium transition-all duration-200 cursor-pointer relative overflow-hidden ${
+                `group flex items-center ${
+                  isMobile
+                    ? 'h-9 px-2.5 rounded-xl text-[13px]'
+                    : 'h-10 px-3 rounded-xl sm:rounded-2xl text-[13.5px]'
+                } font-medium transition-all duration-200 cursor-pointer relative overflow-hidden ${
                   isActive
                     ? 'bg-blue-500/15 text-blue-400 font-semibold border border-blue-500/30 shadow-[0_2px_10px_rgba(59,130,246,0.2),inset_0_1px_0_rgba(255,255,255,0.12)]'
-                    : 'text-slate-400 hover:bg-white/[0.06] hover:text-white border border-transparent hover:border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.06] hover:text-white border border-transparent hover:border-white/10 active:bg-white/[0.08]'
                 }`
               }
               title={!isMobile && collapsed ? `${label}${hasUnread ? ` (${unreadMessagesCount} unread)` : ''}` : undefined}
@@ -232,10 +237,12 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
                     <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-blue-500 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.9)]" />
                   )}
 
-                  <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} flex-shrink-0 flex items-center justify-center relative`}>
-                    <Icon size={isMobile ? 15 : 18} className="transition-transform duration-200 group-hover:scale-110" />
+                  <div className={`${isMobile ? 'w-5 h-5' : 'w-5 h-5'} flex-shrink-0 flex items-center justify-center relative`}>
+                    <Icon size={isMobile ? 16 : 18} className="transition-transform duration-200 group-hover:scale-110" />
                     {!isMobile && collapsed && hasUnread && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0B0F1A] shadow-[0_0_8px_rgba(16,185,129,0.9)] animate-pulse" />
+                      <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-red-600 text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-[#0B0F1A] shadow-[0_0_8px_rgba(239,68,68,0.7)] leading-none select-none">
+                        {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                      </span>
                     )}
                   </div>
 
@@ -243,16 +250,18 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
                     className={`whitespace-nowrap overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       !isMobile && collapsed
                         ? 'max-w-0 opacity-0 -translate-x-2 pointer-events-none'
-                        : 'max-w-[145px] opacity-100 translate-x-0 ml-2.5'
-                    } flex-1 truncate`}
+                        : isMobile
+                        ? 'opacity-100 translate-x-0 ml-2.5 flex-1'
+                        : 'max-w-[145px] opacity-100 translate-x-0 ml-2.5 flex-1'
+                    } truncate`}
                   >
                     {label}
                   </span>
 
                   {(isMobile || !collapsed) && hasUnread && (
-                    <span
-                      className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.9)] animate-pulse flex-shrink-0 ml-auto"
-                    />
+                    <span className="min-w-4 h-4 px-1 rounded-full bg-red-600 text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0 ml-auto shadow-[0_0_8px_rgba(239,68,68,0.7)] leading-none select-none">
+                      {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                    </span>
                   )}
                 </>
               )}
@@ -263,17 +272,17 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
 
       {/* Bottom Area */}
       {isMobile ? (
-        <div className="mt-auto px-2 pb-2.5 pt-1.5 border-t border-white/[0.08] flex-shrink-0 space-y-1.5">
+        <div className="mt-auto px-2.5 pb-3 pt-2 border-t border-white/[0.08] flex-shrink-0 space-y-2">
           {/* User Profile Card */}
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shadow-inner flex-shrink-0">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-[11px] font-bold shadow-inner flex-shrink-0">
               {userInitials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold text-white truncate leading-tight">
+              <p className="text-[11.5px] font-semibold text-white truncate leading-tight">
                 {userName}
               </p>
-              <p className="text-[9px] text-slate-400 truncate leading-tight mt-0.5">
+              <p className="text-[9.5px] text-slate-400 truncate leading-tight mt-0.5">
                 {userRoleSubtitle}
               </p>
             </div>
@@ -281,13 +290,14 @@ function SidebarContent({ collapsed = false, isMobile = false, onClose, onToggle
 
           {/* Logout button for all roles on mobile */}
           <button
+            type="button"
             onClick={handleLogout}
-            className="group w-full flex items-center h-8 px-2.5 rounded-lg text-rose-400/90 hover:bg-rose-500/10 hover:text-rose-300 border border-rose-500/15 hover:border-rose-500/30 transition-all duration-200 cursor-pointer overflow-hidden backdrop-blur-md active:scale-[0.98]"
+            className="group w-full flex items-center h-[34px] px-2.5 rounded-xl text-rose-400/90 hover:bg-rose-500/10 hover:text-rose-300 border border-rose-500/15 hover:border-rose-500/30 transition-all duration-200 cursor-pointer overflow-hidden backdrop-blur-md active:scale-[0.98]"
           >
             <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
               <LogOut size={14} className="transition-transform duration-200 group-hover:scale-110" />
             </div>
-            <span className="text-[11.5px] font-medium ml-2">
+            <span className="text-[12px] font-medium ml-2">
               Logout
             </span>
           </button>
@@ -390,16 +400,16 @@ export function MobileDrawer({ open, onClose }) {
     <div className="lg:hidden fixed inset-0 z-50 no-print">
       {/* Backdrop overlay */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-200 ease-out cursor-pointer ${
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ease-out cursor-pointer ${
           visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Compact Side Drawer (proportionate width: ~64vw, min 185px, max 220px, 220ms animation) */}
+      {/* Side Drawer: 75-80% viewport, max 280px */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-[64vw] min-w-[185px] max-w-[220px] bg-[#0B0F1A]/95 backdrop-blur-2xl border-r border-white/10 shadow-[8px_0_32px_rgba(0,0,0,0.65)] transition-transform duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform z-10 flex flex-col ${
+        className={`fixed left-0 top-0 bottom-0 w-[78vw] max-w-[280px] bg-[#0B0F1A]/95 backdrop-blur-2xl border-r border-white/10 shadow-[8px_0_32px_rgba(0,0,0,0.65)] transition-transform duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform z-10 flex flex-col overflow-hidden ${
           visible ? 'translate-x-0' : '-translate-x-full pointer-events-none'
         }`}
         role="dialog"

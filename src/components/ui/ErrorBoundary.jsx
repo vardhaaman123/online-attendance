@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default class ErrorBoundary extends React.Component {
@@ -33,6 +33,16 @@ export default class ErrorBoundary extends React.Component {
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                 An unexpected interface error occurred. You can reload to restore your session.
               </p>
+              {this.state.error && (
+                <div className="mt-3 p-3 rounded-xl bg-red-950/50 border border-red-500/30 text-left overflow-x-auto max-h-56">
+                  <p className="text-xs font-mono font-bold text-red-400">{this.state.error.toString()}</p>
+                  {this.state.error.stack && (
+                    <pre className="text-[10px] font-mono text-red-300/80 mt-1 whitespace-pre-wrap">
+                      {this.state.error.stack}
+                    </pre>
+                  )}
+                </div>
+              )}
             </div>
             <button
               onClick={this.handleReload}

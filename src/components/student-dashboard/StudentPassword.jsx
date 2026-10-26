@@ -161,7 +161,7 @@ export default function StudentPassword() {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto space-y-5 animate-fade-in pb-10">
+    <div className="w-full max-w-2xl sm:max-w-3xl mx-auto space-y-5 animate-fade-in pb-10">
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">

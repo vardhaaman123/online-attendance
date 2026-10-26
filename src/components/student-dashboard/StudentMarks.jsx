@@ -268,7 +268,7 @@ export default function StudentMarks() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-5 animate-fade-in pb-12">
+    <div className="w-full space-y-5 animate-fade-in pb-12">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -631,7 +631,7 @@ export default function StudentMarks() {
                                   {student.name}
                                 </p>
                                 {isMe && (
-                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-500 text-white">
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">
                                     <Star size={9} fill="currentColor" /> YOU
                                   </span>
                                 )}
@@ -752,7 +752,7 @@ export default function StudentMarks() {
                               {student.name}
                             </p>
                             {isMe && (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-500 text-white">
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">
                                 <Star size={9} fill="currentColor" /> YOU
                               </span>
                             )}

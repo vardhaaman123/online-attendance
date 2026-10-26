@@ -33,8 +33,37 @@ export default function TeacherProfileModal({ open, teacher, onClose, onEdit }) 
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Teacher Details" maxWidth="max-w-md">
-      <div className="space-y-4">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Teacher Details"
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary text-xs cursor-pointer"
+          >
+            Close
+          </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEdit(liveTeacher);
+              }}
+              className="btn-primary text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/20"
+            >
+              <Edit2 size={13} />
+              <span>Edit Teacher</span>
+            </button>
+          )}
+        </div>
+      }
+    >
+      <div className="space-y-4 sm:space-y-5">
         {/* Header with Avatar, Name, ID, and Status */}
         <div className="flex items-center gap-3.5 p-3.5 sm:p-4 bg-slate-50 dark:bg-[#111726] border border-slate-200/80 dark:border-white/10 rounded-2xl">
           <div
@@ -73,7 +102,7 @@ export default function TeacherProfileModal({ open, teacher, onClose, onEdit }) 
         </div>
 
         {/* Live-Synced Password Box */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/25 flex items-center justify-between gap-3">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/25 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
               <Key size={15} />
@@ -81,7 +110,7 @@ export default function TeacherProfileModal({ open, teacher, onClose, onEdit }) 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] uppercase font-bold text-blue-400 tracking-wider">Login Password</span>
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                   Live Synced
                 </span>
@@ -111,48 +140,24 @@ export default function TeacherProfileModal({ open, teacher, onClose, onEdit }) 
           </div>
         </div>
 
-        {/* Detailed Info List */}
-        <div className="space-y-2 pt-1">
+        {/* Detailed Info List Box */}
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#111726] border border-slate-200/80 dark:border-white/10 space-y-2">
           {[
             [Mail, 'Email Address', liveTeacher.email],
             [Phone, 'Contact Number', liveTeacher.contact || 'Not provided'],
             [BookOpen, 'Assigned Division', `Class ${liveTeacher.class} - Section ${liveTeacher.section}`],
             [Award, 'Students in Assigned Class', `${assignedStudents.length} Students`],
           ].map(([Icon, label, val]) => (
-            <div key={label} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400">
-                <Icon size={14} />
+            <div key={label} className="flex items-center gap-3 p-2 rounded-xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/5">
+              <div className="w-7 h-7 rounded-lg bg-white dark:bg-white/5 border border-slate-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400">
+                <Icon size={13} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] text-slate-400 uppercase font-semibold">{label}</p>
-                <p className="text-xs font-medium text-slate-800 dark:text-slate-200 break-all">{val || '—'}</p>
+                <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{val || '—'}</p>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-white/10">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary text-xs cursor-pointer"
-          >
-            Close
-          </button>
-          {onEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onEdit(liveTeacher);
-              }}
-              className="btn-primary text-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <Edit2 size={13} />
-              <span>Edit Teacher</span>
-            </button>
-          )}
         </div>
       </div>
     </Modal>

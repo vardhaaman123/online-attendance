@@ -12,7 +12,15 @@ service cloud.firestore {
     match /users_lookup/{document=**} {
       allow read, write: if true;
     }
+
+    // Video call signalling documents and ICE candidate sub-collections
+    // Open read/write — the app enforces authorization at the component level
+    // (calls are only created to valid, authenticated calleeIds)
+    match /calls/{callId} {
+      allow read, write: if true;
+    }
+    match /calls/{callId}/{subcollection}/{document} {
+      allow read, write: if true;
+    }
   }
 }
-
-

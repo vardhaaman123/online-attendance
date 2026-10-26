@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Search, Edit2, Trash2, Eye, Download, Upload, MoreVertical, Key, Sparkles, RefreshCw, CheckSquare, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, Download, Upload, MoreVertical, Key, Sparkles, RefreshCw, CheckSquare, X, ChevronRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { calcStudentAttendancePercentage } from '../../utils/attendanceCalc';
@@ -14,17 +14,24 @@ import * as XLSX from 'xlsx';
 
 function ConfirmDeleteModal({ open, student, onConfirm, onClose }) {
   return (
-    <Modal open={open} onClose={onClose} title="Delete Student">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Delete Student"
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex gap-3 justify-end w-full">
+          <button onClick={onClose} className="btn-secondary px-4 py-2 cursor-pointer">Cancel</button>
+          <button onClick={onConfirm} className="btn-danger px-4 py-2 cursor-pointer">Delete Student</button>
+        </div>
+      }
+    >
       <div className="space-y-4">
-        <p className="text-sm text-slate-600 dark:text-slate-300">
+        <p className="text-sm text-slate-300">
           Are you sure you want to delete{' '}
-          <span className="font-bold text-slate-900 dark:text-white">{student?.name}</span>?
+          <span className="font-bold text-white">{student?.name}</span>?
           This action cannot be undone.
         </p>
-        <div className="flex gap-3 justify-end">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
-          <button onClick={onConfirm} className="btn-danger">Delete Student</button>
-        </div>
       </div>
     </Modal>
   );
@@ -32,49 +39,55 @@ function ConfirmDeleteModal({ open, student, onConfirm, onClose }) {
 
 function ConfirmDeleteSelectedModal({ open, selectedStudents, onConfirm, onClose, isDeleting }) {
   return (
-    <Modal open={open} onClose={onClose} title={`Delete ${selectedStudents.length} Selected Students`} maxWidth="max-w-md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`Delete ${selectedStudents.length} Selected Students`}
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex gap-3 justify-end w-full">
+          <button onClick={onClose} disabled={isDeleting} className="btn-secondary px-4 py-2 cursor-pointer">
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting || selectedStudents.length === 0}
+            className="btn-danger px-4 py-2 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Trash2 size={14} />
+            {isDeleting ? 'Deleting...' : `Delete ${selectedStudents.length} Students`}
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-4">
-        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-300 text-xs flex items-start gap-2.5">
-          <Trash2 size={16} className="text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-start gap-2.5">
+          <Trash2 size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold text-red-600 dark:text-red-200">Warning: Permanent Deletion</p>
+            <p className="font-semibold text-red-200">Warning: Permanent Deletion</p>
             <p className="leading-relaxed">
               This will permanently delete the <strong>{selectedStudents.length} selected students</strong> and their attendance records. Their login credentials will also be revoked.
             </p>
           </div>
         </div>
 
-        <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
+        <div className="max-h-48 overflow-y-auto divide-y divide-white/5 border border-white/10 rounded-xl">
           {selectedStudents.map((s) => (
             <div key={s.id || s._docId} className="p-2.5 flex items-center justify-between text-xs">
               <div className="min-w-0 pr-2">
-                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{s.name}</p>
+                <p className="font-semibold text-slate-200 truncate">{s.name}</p>
                 <p className="text-[10px] text-slate-400">Class {s.class}-{s.section} · Roll #{s.rollNumber}</p>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
                 #{s.rollNumber}
               </span>
             </div>
           ))}
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-400">
           This action cannot be undone. Are you sure you want to proceed?
         </p>
-
-        <div className="flex gap-3 justify-end pt-2">
-          <button onClick={onClose} disabled={isDeleting} className="btn-secondary cursor-pointer">
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isDeleting || selectedStudents.length === 0}
-            className="btn-danger flex items-center gap-1.5 cursor-pointer"
-          >
-            <Trash2 size={14} />
-            {isDeleting ? 'Deleting...' : `Delete ${selectedStudents.length} Students`}
-          </button>
-        </div>
       </div>
     </Modal>
   );
@@ -103,16 +116,34 @@ function DeleteClassModal({ open, selectedClass, availableClasses, students, onC
   const isAll = target === 'all';
 
   return (
-    <Modal open={open} onClose={onClose} title={isAll ? "Delete All Classes & Students" : `Delete Class ${target}`}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isAll ? "Delete All Classes & Students" : `Delete Class ${target}`}
+      maxWidth="max-w-md"
+      footer={
+        <div className="flex gap-3 justify-end w-full">
+          <button onClick={onClose} className="btn-secondary px-4 py-2 cursor-pointer">Cancel</button>
+          <button
+            onClick={() => onConfirm(target)}
+            disabled={targetCount === 0}
+            className="btn-danger px-4 py-2 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Trash2 size={14} />
+            {isAll ? `Delete All Students (${targetCount})` : `Delete Class ${target} (${targetCount})`}
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
             Select Class to Delete:
           </label>
           <select
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            className="input-field w-full bg-slate-50 dark:bg-[#111726] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none"
+            className="input-field w-full bg-[#111726] border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:outline-none"
           >
             {availableClasses.map(c => {
               const count = students.filter(s => String(s.class) === String(c)).length;
@@ -128,10 +159,10 @@ function DeleteClassModal({ open, selectedClass, availableClasses, students, onC
           </select>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-300 text-xs flex items-start gap-2.5">
-          <Trash2 size={16} className="text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-start gap-2.5">
+          <Trash2 size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold text-red-600 dark:text-red-200">Warning: Permanent Deletion</p>
+            <p className="font-semibold text-red-200">Warning: Permanent Deletion</p>
             <p className="leading-relaxed">
               {isAll ? (
                 <>This will permanently delete <strong>all {targetCount} students</strong> across all classes and remove all their attendance records.</>
@@ -142,21 +173,9 @@ function DeleteClassModal({ open, selectedClass, availableClasses, students, onC
           </div>
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-400">
           This action cannot be undone. Are you sure you want to proceed?
         </p>
-
-        <div className="flex gap-3 justify-end pt-2">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
-          <button
-            onClick={() => onConfirm(target)}
-            disabled={targetCount === 0}
-            className="btn-danger flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <Trash2 size={14} />
-            {isAll ? `Delete All Students (${targetCount})` : `Delete Class ${target} (${targetCount})`}
-          </button>
-        </div>
       </div>
     </Modal>
   );
@@ -192,39 +211,46 @@ export default function StudentList() {
   const [slipStudent, setSlipStudent] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [activeMenuStudent, setActiveMenuStudent] = useState(null);
-  const [menuPosition, setMenuPosition] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleToggleMenu = (e, student) => {
     e.stopPropagation();
-    if (activeMenuStudent?.id === student.id) {
-      setActiveMenuStudent(null);
-      setMenuPosition(null);
-    } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const fitsBelow = rect.bottom + 210 <= window.innerHeight;
-      setActiveMenuStudent(student);
-      setMenuPosition({
-        top: fitsBelow ? rect.bottom + 6 : Math.max(10, rect.top - 210),
-        right: Math.max(12, window.innerWidth - rect.right),
-      });
-    }
+    setActiveMenuStudent(activeMenuStudent?.id === student.id ? null : student);
   };
 
+  const liveActiveMenuStudent = useMemo(() => {
+    if (!activeMenuStudent) return null;
+    return (students || []).find(
+      s => (s.id && (s.id === activeMenuStudent.id || s._docId === activeMenuStudent.id)) ||
+           (s.rollNumber && s.rollNumber === activeMenuStudent.rollNumber)
+    ) || activeMenuStudent;
+  }, [activeMenuStudent, students]);
+
+  // Lock body scroll when Quick Actions Modal is active
   useEffect(() => {
-    const handleScrollOrResize = () => {
-      if (activeMenuStudent) {
-        setActiveMenuStudent(null);
-        setMenuPosition(null);
+    if (activeMenuStudent) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      const hasOtherOpenModals = document.querySelector('.fixed.inset-0.z-\\[60\\]');
+      if (!hasOtherOpenModals) {
+        document.body.style.overflow = '';
       }
     };
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-    return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
-    };
   }, [activeMenuStudent]);
+
+  // Close Quick Actions modal on Escape ONLY if no top child modal is open
+  useEffect(() => {
+    if (!activeMenuStudent) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (slipStudent || profileStudent || editStudent || deleteTarget) return;
+        setActiveMenuStudent(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeMenuStudent, slipStudent, profileStudent, editStudent, deleteTarget]);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -305,6 +331,7 @@ export default function StudentList() {
     if (!deleteTarget) return;
     await deleteStudent(deleteTarget.id || deleteTarget._docId);
     addToast(`${deleteTarget.name} has been removed.`, 'info');
+    setActiveMenuStudent(null);
     setDeleteTarget(null);
   };
 
@@ -469,7 +496,7 @@ export default function StudentList() {
   }, [slipStudent, students]);
 
   return (
-    <div className={`max-w-7xl mx-auto space-y-5 animate-fade-in ${!isTeacher && isDeleteMode ? "pb-24 sm:pb-28" : ""}`}>
+    <div className={`w-full space-y-5 animate-fade-in ${!isTeacher && isDeleteMode ? "pb-24 sm:pb-28" : ""}`}>
       {/* Header Actions */}
       <div className="flex items-center justify-between gap-2 sm:gap-3 pb-0.5">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -642,7 +669,7 @@ export default function StudentList() {
       )}
 
       {/* Filters: Search Bar & Class / Section Selectors */}
-      <div className="rounded-2xl bg-white dark:bg-[#0B0F1A]/80 border border-slate-200/80 dark:border-white/10 p-2 sm:p-3 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative z-10">
+      <div className="rounded-2xl bg-white dark:bg-[#0B0F1A]/80 border border-slate-200/80 dark:border-white/10 p-2 sm:p-3 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative z-20">
         <div className="flex items-center gap-1.5 sm:gap-2.5 w-full">
           {/* Search Bar - fills available space */}
           <div className="flex-1 min-w-0 relative">
@@ -761,12 +788,12 @@ export default function StudentList() {
                     />
                   </th>
                 )}
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Roll No</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Student</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3 hidden md:table-cell">Class</th>
-                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3 hidden lg:table-cell">Parent</th>
-                <th className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Attendance</th>
-                <th className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-4 py-3">Actions</th>
+                <th className="w-24 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Roll No</th>
+                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Student</th>
+                <th className="w-28 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5 hidden md:table-cell">Class</th>
+                <th className="text-left text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5 hidden lg:table-cell">Parent</th>
+                <th className="w-32 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Attendance</th>
+                <th className="w-24 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 px-5 py-3.5">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -810,12 +837,12 @@ export default function StudentList() {
                           />
                         </td>
                       )}
-                      <td className="px-4 py-3">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#111726] border border-slate-200 dark:border-white/10 px-2 py-0.5 rounded-md">
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-[#111726] border border-slate-200 dark:border-white/10 px-2 py-0.5 rounded-md font-mono">
                           {student.rollNumber}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white shadow-xs"
                             style={{ background: `hsl(${(student.rollNumber.charCodeAt(0) * 47) % 360}, 60%, 55%)` }}>
@@ -825,7 +852,7 @@ export default function StudentList() {
                             <div className="flex items-center gap-1.5">
                               <p className="text-sm font-semibold text-slate-900 dark:text-white">{student.name}</p>
                               {isRecentlyUpdated && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full border border-emerald-500/20">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                                   <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                                   Live Synced
                                 </span>
@@ -835,17 +862,17 @@ export default function StudentList() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
+                      <td className="px-5 py-3.5 hidden md:table-cell">
                         <span className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold px-2 py-0.5 rounded-md">
                           {student.class}-{student.section}
                         </span>
                       </td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
+                      <td className="px-5 py-3.5 hidden lg:table-cell">
                         <p className="text-xs text-slate-600 dark:text-slate-300">{student.parentName}</p>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-5 py-3.5 text-center">
                         {stats.total > 0 ? (
-                          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border ${pctClass}`}>
+                          <span className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded-full border ${pctClass}`}>
                             {pct}%
                           </span>
                         ) : (
@@ -853,7 +880,7 @@ export default function StudentList() {
                         )}
                       </td>
                       {/* Actions - Three-Dots Button */}
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-5 py-3.5 text-center">
                         <button
                           type="button"
                           onClick={(e) => handleToggleMenu(e, student)}
@@ -930,7 +957,7 @@ export default function StudentList() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-sm font-bold text-slate-900 dark:text-white break-words leading-tight">{student.name}</p>
                         {isRecentlyUpdated && (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                             <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                             Live Synced
                           </span>
@@ -982,87 +1009,172 @@ export default function StudentList() {
         </div>
       </div>
 
-      {/* Floating 3-dots Dropdown Menu (Fixed coordinates to prevent table overflow clipping) */}
-      {activeMenuStudent && menuPosition && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => {
-              setActiveMenuStudent(null);
-              setMenuPosition(null);
-            }}
-          />
-          <div
-            style={{ top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
-            className="fixed w-52 bg-white dark:bg-[#111726] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl py-1.5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
-          >
-            <div className="px-3 py-1.5 border-b border-slate-100 dark:border-white/[0.08] mb-1">
-              <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate">
-                {activeMenuStudent.name}
-              </p>
-              <p className="text-[10px] text-slate-400 font-mono truncate">
-                Roll #{activeMenuStudent.rollNumber} • Class {activeMenuStudent.class}-{activeMenuStudent.section}
-              </p>
+      {/* ── Centered Student Quick Actions Modal ── */}
+      {activeMenuStudent && (() => {
+        const currentStudent = liveActiveMenuStudent || activeMenuStudent;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
+            {/* Frosted Dark Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity cursor-pointer"
+              onClick={() => setActiveMenuStudent(null)}
+            />
+
+            {/* Centered Modal Card */}
+            <div className="relative w-full max-w-sm sm:max-w-md bg-[#0C101A]/95 dark:bg-[#0B0F19]/95 border border-white/15 rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.85),0_0_35px_rgba(59,130,246,0.18)] backdrop-blur-2xl overflow-hidden animate-modal-pop z-10 select-none">
+              {/* Top ambient illumination glow */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent pointer-events-none" />
+
+              {/* Header: Student Info + Close button */}
+              <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-bold text-white shadow-md border border-white/20"
+                    style={{ background: `hsl(${(String(currentStudent.rollNumber || '0').charCodeAt(0) * 47) % 360}, 60%, 55%)` }}
+                  >
+                    {String(currentStudent.name || 'S').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-white truncate leading-tight">
+                      {currentStudent.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-300">
+                        Roll #{currentStudent.rollNumber}
+                      </span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                        Class {currentStudent.class}-{currentStudent.section}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveMenuStudent(null)}
+                  className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer flex-shrink-0 active:scale-95"
+                  title="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Action Items List */}
+              <div className="p-4 space-y-2.5">
+                {/* Login Slip */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSlipStudent(currentStudent);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-emerald-500/10 border border-white/[0.06] hover:border-emerald-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                      <Key size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                        Login Slip
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Print or download student credentials slip
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* View Profile */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileStudent(currentStudent);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-blue-500/10 border border-white/[0.06] hover:border-blue-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(59,130,246,0.2)]">
+                      <Eye size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        View Profile
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Attendance stats, parent contacts & bio
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* Edit Details */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fresh = (students || []).find(
+                      x => (x.id && (x.id === currentStudent.id || x._docId === currentStudent.id)) || (x.rollNumber && x.rollNumber === currentStudent.rollNumber)
+                    ) || currentStudent;
+                    setEditStudent(fresh);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.06] hover:border-amber-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                      <Edit2 size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-amber-300 transition-colors">
+                        Edit Details
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Update student name, roll number, or class
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+
+                {/* Delete Student */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteTarget(currentStudent);
+                  }}
+                  className="group w-full h-[62px] min-h-[62px] p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.06] hover:border-rose-500/30 flex items-center justify-between gap-3 transition-all duration-200 cursor-pointer active:scale-[0.98] text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-rose-400 flex-shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(244,63,94,0.2)]">
+                      <Trash2 size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-rose-400 group-hover:text-rose-300 transition-colors">
+                        Delete Student
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                        Permanently remove student from register
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-500 group-hover:text-rose-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                </button>
+              </div>
+
+              {/* Footer Dismiss Button */}
+              <div className="px-4 pb-4 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveMenuStudent(null)}
+                  className="w-full py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer text-center"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const s = activeMenuStudent;
-                setActiveMenuStudent(null);
-                setMenuPosition(null);
-                setSlipStudent(s);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Key size={14} className="text-emerald-500 dark:text-emerald-400" />
-              <span>Login Slip</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const s = activeMenuStudent;
-                setActiveMenuStudent(null);
-                setMenuPosition(null);
-                setProfileStudent(s);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-500/10 hover:text-blue-500 dark:hover:text-blue-400 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Eye size={14} className="text-blue-500 dark:text-blue-400" />
-              <span>View Profile</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const s = activeMenuStudent;
-                setActiveMenuStudent(null);
-                setMenuPosition(null);
-                const fresh = (students || []).find(
-                  x => (x.id && (x.id === s.id || x._docId === s.id)) || (x.rollNumber && x.rollNumber === s.rollNumber)
-                ) || s;
-                setEditStudent(fresh);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:text-amber-400 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Edit2 size={14} className="text-amber-500 dark:text-amber-400" />
-              <span>Edit Details</span>
-            </button>
-            <div className="my-1 border-t border-slate-100 dark:border-white/[0.08]" />
-            <button
-              type="button"
-              onClick={() => {
-                const s = activeMenuStudent;
-                setActiveMenuStudent(null);
-                setMenuPosition(null);
-                setDeleteTarget(s);
-              }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors cursor-pointer"
-            >
-              <Trash2 size={14} className="text-rose-500 dark:text-rose-400" />
-              <span>Delete Student</span>
-            </button>
           </div>
-        </>
-      )}
+        );
+      })()}
 
       <ConfirmDeleteSelectedModal
         open={deleteSelectedModalOpen}

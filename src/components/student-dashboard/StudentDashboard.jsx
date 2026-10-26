@@ -419,7 +419,7 @@ export default function StudentDashboard() {
   if (!currentStudent) return null;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5 animate-fade-in text-slate-100 pb-10">
+    <div className="w-full space-y-5 animate-fade-in text-slate-100 pb-10">
       {/* ── STUDENT HERO PROFILE BANNER ── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0E1528] via-[#0B0F1A] to-[#070A12] border border-white/10 p-5 sm:p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
         <div className="absolute top-0 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -474,7 +474,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* ── 4 KPI STAT TILES ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Present */}
         <div className="rounded-2xl bg-[#0B0F19]/80 border border-white/10 hover:border-emerald-500/30 p-4 backdrop-blur-xl transition-all shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
           <div className="flex items-center justify-between mb-2">
@@ -591,9 +591,9 @@ export default function StudentDashboard() {
       </div>
 
       {/* ── MIDDLE ROW: INTERACTIVE CALENDAR & SUBJECT BREAKDOWN ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-5">
         {/* Calendar Area (7 Cols) */}
-        <div className="lg:col-span-7 rounded-2xl bg-[#0B0F19]/80 border border-white/10 p-3.5 sm:p-5 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex flex-col">
+        <div className="md:col-span-7 lg:col-span-7 rounded-2xl bg-[#0B0F19]/80 border border-white/10 p-3.5 sm:p-5 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
@@ -751,7 +751,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Subject Breakdown & Announcements (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col space-y-5">
+        <div className="md:col-span-5 lg:col-span-5 flex flex-col space-y-5">
           {/* Subject Attendance Breakdown */}
           <div className="rounded-2xl bg-[#0B0F19]/80 border border-white/10 p-5 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">

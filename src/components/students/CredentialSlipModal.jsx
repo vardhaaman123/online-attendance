@@ -209,17 +209,17 @@ export default function CredentialSlipModal({ open, student, onClose }) {
   };
 
   const modalFooter = (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
-      <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full min-w-0">
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 min-w-0">
         <Sparkles size={13} className="text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
-        Share with student or parent to allow immediate login.
+        <span className="truncate">Share with student or parent to allow immediate login.</span>
       </p>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div className="flex items-center gap-2.5 w-full sm:w-auto flex-shrink-0 justify-end">
         <button
           type="button"
           onClick={handleCopy}
-          className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs py-2 px-3.5 cursor-pointer"
+          className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs py-2 px-3.5 whitespace-nowrap cursor-pointer flex-shrink-0"
         >
           {copied ? (
             <>
@@ -237,7 +237,7 @@ export default function CredentialSlipModal({ open, student, onClose }) {
         <button
           type="button"
           onClick={handlePrint}
-          className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs py-2 px-3.5 cursor-pointer bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-md shadow-emerald-600/20"
+          className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs py-2 px-3.5 whitespace-nowrap cursor-pointer bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-md shadow-emerald-600/20 flex-shrink-0"
         >
           <Printer size={14} />
           <span>Print Slip</span>
@@ -251,7 +251,7 @@ export default function CredentialSlipModal({ open, student, onClose }) {
       open={open}
       onClose={onClose}
       title="Student Login Credential Slip"
-      maxWidth="max-w-lg"
+      maxWidth="max-w-lg sm:max-w-xl"
       footer={modalFooter}
     >
       <div className="space-y-4">

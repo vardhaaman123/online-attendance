@@ -62,6 +62,17 @@ function AttendanceEditModal({ record, students, onSave, onClose }) {
     }
   }, [recordDateStr]);
 
+  // Close on Escape key press and lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
@@ -324,9 +335,9 @@ export default function AttendanceHistory() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 animate-fade-in pb-10">
+    <div className="w-full space-y-5 animate-fade-in pb-10">
       {/* ── TOP HEADER & CONTROLS ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-20">
         <div>
           <h1 className="text-xl font-bold text-navy-900 dark:text-white">Attendance History</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -334,7 +345,7 @@ export default function AttendanceHistory() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 relative z-10">
+        <div className="flex flex-wrap items-center gap-2 relative z-20">
           {/* Search */}
           <div className="relative flex-1 sm:flex-initial min-w-[140px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />

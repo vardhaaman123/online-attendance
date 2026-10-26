@@ -18,7 +18,7 @@ export default function StudentProfile() {
   ];
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-5 animate-fade-in text-slate-100 pb-10">
+    <div className="w-full max-w-2xl sm:max-w-3xl mx-auto space-y-5 animate-fade-in text-slate-100 pb-10">
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Student Profile</h1>
         <p className="text-xs text-slate-400 mt-0.5">Verified academic and personal records on file.</p>

@@ -146,8 +146,8 @@ export default function StudentProfileModal({ open, student, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Student Profile" maxWidth="max-w-xl">
-      <div className="space-y-5">
-        {/* Header */}
+      <div className="space-y-4 sm:space-y-5">
+        {/* Header Profile Box */}
         <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-[#111726] border border-slate-200/80 dark:border-white/10 rounded-2xl">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0 shadow-md"
@@ -176,21 +176,21 @@ export default function StudentProfileModal({ open, student, onClose }) {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+        {/* Attendance Stats Boxes */}
+        <div className="grid grid-cols-2 gap-3">
           {[
             ['Present', stats.present || 0, 'text-emerald-500 dark:text-emerald-400', 'bg-emerald-500/10 border border-emerald-500/20'],
             ['Absent', stats.absent || 0, 'text-rose-500 dark:text-rose-400', 'bg-rose-500/10 border border-rose-500/20'],
           ].map(([l, v, c, bg]) => (
-            <div key={l} className={`${bg} rounded-xl p-3 text-center`}>
+            <div key={l} className={`${bg} rounded-2xl p-3.5 text-center`}>
               <p className={`text-xl font-bold ${c}`}>{v}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{l}</p>
             </div>
           ))}
         </div>
 
-        {/* Real-time Login Password Card */}
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/20">
+        {/* Real-time Login Password Card Box */}
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/20">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
               <Key size={15} />
@@ -198,7 +198,7 @@ export default function StudentProfileModal({ open, student, onClose }) {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] uppercase font-bold text-emerald-500 dark:text-emerald-400 tracking-wider">Login Password</span>
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
                   Live Synced
                 </span>
@@ -228,28 +228,30 @@ export default function StudentProfileModal({ open, student, onClose }) {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="space-y-2.5">
-          {[
-            [User, 'Parent / Guardian', liveStudent.parentName],
-            [Phone, 'Contact', liveStudent.contact],
-            [Mail, 'Email', liveStudent.email],
-            [BookOpen, 'Class', `${liveStudent.class}-${liveStudent.section}`],
-          ].map(([Icon, label, val]) => (
-            <div key={label} className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0">
-                <Icon size={14} className="text-slate-500 dark:text-slate-400" />
+        {/* Contact & Student Details Box */}
+        <div className="p-4 bg-slate-50 dark:bg-[#111726] border border-slate-200/80 dark:border-white/10 rounded-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              [User, 'Parent / Guardian', liveStudent.parentName],
+              [Phone, 'Contact', liveStudent.contact],
+              [Mail, 'Email', liveStudent.email],
+              [BookOpen, 'Class', `${liveStudent.class}-${liveStudent.section}`],
+            ].map(([Icon, label, val]) => (
+              <div key={label} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white dark:bg-white/5 border border-slate-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0">
+                  <Icon size={14} className="text-slate-500 dark:text-slate-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">{label}</p>
+                  <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{val || '—'}</p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-slate-400">{label}</p>
-                <p className="text-xs font-medium text-slate-900 dark:text-white break-all">{val || '—'}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Monthly Calendar */}
-        <div>
+        {/* Monthly Attendance Calendar Box */}
+        <div className="p-4 bg-slate-50 dark:bg-[#111726] border border-slate-200/80 dark:border-white/10 rounded-2xl">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar size={14} className="text-blue-500 dark:text-blue-400" />
@@ -258,7 +260,7 @@ export default function StudentProfileModal({ open, student, onClose }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={prevMonth}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400"
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -268,7 +270,7 @@ export default function StudentProfileModal({ open, student, onClose }) {
               <button
                 onClick={nextMonth}
                 disabled={calYear === now.getFullYear() && calMonth >= now.getMonth()}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 disabled:opacity-30"
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 disabled:opacity-30 transition-colors cursor-pointer"
               >
                 <ChevronRight size={14} />
               </button>

@@ -35,7 +35,7 @@ function DateNav({ date, onChange }) {
       <button
         type="button"
         onClick={() => move(-1)}
-        className="w-6.5 h-6.5 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-[#161F34] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors shadow-xs cursor-pointer active:scale-95"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-[#161F34] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors shadow-xs cursor-pointer active:scale-95"
         title="Previous Day"
       >
         <ChevronLeft size={13} />
@@ -51,7 +51,7 @@ function DateNav({ date, onChange }) {
         type="button"
         onClick={() => move(1)}
         disabled={isFuture || isToday}
-        className="w-6.5 h-6.5 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-[#161F34] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-xs cursor-pointer active:scale-95"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-[#161F34] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed shadow-xs cursor-pointer active:scale-95"
         title="Next Day"
       >
         <ChevronRight size={13} />
@@ -116,7 +116,7 @@ function ProgressRing({ percentage }) {
   const color = percentage >= 85 ? '#10B981' : percentage >= 70 ? '#F59E0B' : '#F43F5E';
 
   return (
-    <div className="relative inline-flex items-center justify-center flex-shrink-0 w-8 h-8 sm:w-28 sm:h-28">
+    <div className="relative inline-flex items-center justify-center flex-shrink-0 w-10 h-10 sm:w-24 sm:h-24">
       <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full -rotate-90">
         <circle
           cx={center}
@@ -140,7 +140,7 @@ function ProgressRing({ percentage }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
-        <span className="text-[9px] sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
+        <span className="text-[10px] sm:text-xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
           {percentage}%
         </span>
         <span className="hidden sm:inline text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wide">
@@ -429,7 +429,7 @@ export default function TakeAttendance() {
     <>
       {saving && <LoadingScreen message="Saving attendance..." fullScreen={true} />}
       {/* ── SCREEN DASHBOARD UI (HIDDEN ON PRINT) ── */}
-      <div className="no-print max-w-7xl mx-auto space-y-2 sm:space-y-4 animate-fade-in pb-8 sm:pb-10">
+      <div className="no-print w-full space-y-2 sm:space-y-4 animate-fade-in pb-8 sm:pb-10">
 
 
       {/* ── 2. ATTENDANCE CONTROL BAR ── */}
