@@ -234,9 +234,12 @@ export default function RoleSelectorPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 text-center pb-2">
+      <footer className="relative z-10 text-center pb-2 flex flex-col items-center gap-1">
         <p className="text-[#64748B] text-[11px] sm:text-xs tracking-wide">
           © 2026 Attendify • Smart School Attendance Management
+        </p>
+        <p className="text-[#64748B] text-[10.5px] sm:text-[11px] tracking-wide">
+          Developed by <span className="text-slate-400 font-medium">Vardhaman Ainapure</span>
         </p>
       </footer>
     </div>
